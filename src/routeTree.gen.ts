@@ -12,7 +12,17 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppTeachingRouteImport } from './routes/_app/teaching'
+import { Route as AppScheduleRouteImport } from './routes/_app/schedule'
+import { Route as AppMonitoringRouteImport } from './routes/_app/monitoring'
+import { Route as AppMasterDataRouteImport } from './routes/_app/master-data'
+import { Route as AppKrsRouteImport } from './routes/_app/krs'
+import { Route as AppIntegrationRouteImport } from './routes/_app/integration'
+import { Route as AppGradesRouteImport } from './routes/_app/grades'
+import { Route as AppGradeInputRouteImport } from './routes/_app/grade-input'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppAdviseesRouteImport } from './routes/_app/advisees'
+import { Route as AppAccreditationRouteImport } from './routes/_app/accreditation'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -28,35 +38,156 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppTeachingRoute = AppTeachingRouteImport.update({
+  id: '/teaching',
+  path: '/teaching',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppScheduleRoute = AppScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMonitoringRoute = AppMonitoringRouteImport.update({
+  id: '/monitoring',
+  path: '/monitoring',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMasterDataRoute = AppMasterDataRouteImport.update({
+  id: '/master-data',
+  path: '/master-data',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppKrsRoute = AppKrsRouteImport.update({
+  id: '/krs',
+  path: '/krs',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIntegrationRoute = AppIntegrationRouteImport.update({
+  id: '/integration',
+  path: '/integration',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGradesRoute = AppGradesRouteImport.update({
+  id: '/grades',
+  path: '/grades',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGradeInputRoute = AppGradeInputRouteImport.update({
+  id: '/grade-input',
+  path: '/grade-input',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdviseesRoute = AppAdviseesRouteImport.update({
+  id: '/advisees',
+  path: '/advisees',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAccreditationRoute = AppAccreditationRouteImport.update({
+  id: '/accreditation',
+  path: '/accreditation',
   getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/accreditation': typeof AppAccreditationRoute
+  '/advisees': typeof AppAdviseesRoute
   '/dashboard': typeof AppDashboardRoute
+  '/grade-input': typeof AppGradeInputRoute
+  '/grades': typeof AppGradesRoute
+  '/integration': typeof AppIntegrationRoute
+  '/krs': typeof AppKrsRoute
+  '/master-data': typeof AppMasterDataRoute
+  '/monitoring': typeof AppMonitoringRoute
+  '/schedule': typeof AppScheduleRoute
+  '/teaching': typeof AppTeachingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/accreditation': typeof AppAccreditationRoute
+  '/advisees': typeof AppAdviseesRoute
   '/dashboard': typeof AppDashboardRoute
+  '/grade-input': typeof AppGradeInputRoute
+  '/grades': typeof AppGradesRoute
+  '/integration': typeof AppIntegrationRoute
+  '/krs': typeof AppKrsRoute
+  '/master-data': typeof AppMasterDataRoute
+  '/monitoring': typeof AppMonitoringRoute
+  '/schedule': typeof AppScheduleRoute
+  '/teaching': typeof AppTeachingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/accreditation': typeof AppAccreditationRoute
+  '/_app/advisees': typeof AppAdviseesRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/grade-input': typeof AppGradeInputRoute
+  '/_app/grades': typeof AppGradesRoute
+  '/_app/integration': typeof AppIntegrationRoute
+  '/_app/krs': typeof AppKrsRoute
+  '/_app/master-data': typeof AppMasterDataRoute
+  '/_app/monitoring': typeof AppMonitoringRoute
+  '/_app/schedule': typeof AppScheduleRoute
+  '/_app/teaching': typeof AppTeachingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/accreditation'
+    | '/advisees'
+    | '/dashboard'
+    | '/grade-input'
+    | '/grades'
+    | '/integration'
+    | '/krs'
+    | '/master-data'
+    | '/monitoring'
+    | '/schedule'
+    | '/teaching'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard'
-  id: '__root__' | '/' | '/_app' | '/login' | '/_app/dashboard'
+  to:
+    | '/'
+    | '/login'
+    | '/accreditation'
+    | '/advisees'
+    | '/dashboard'
+    | '/grade-input'
+    | '/grades'
+    | '/integration'
+    | '/krs'
+    | '/master-data'
+    | '/monitoring'
+    | '/schedule'
+    | '/teaching'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/login'
+    | '/_app/accreditation'
+    | '/_app/advisees'
+    | '/_app/dashboard'
+    | '/_app/grade-input'
+    | '/_app/grades'
+    | '/_app/integration'
+    | '/_app/krs'
+    | '/_app/master-data'
+    | '/_app/monitoring'
+    | '/_app/schedule'
+    | '/_app/teaching'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -88,6 +219,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/teaching': {
+      id: '/_app/teaching'
+      path: '/teaching'
+      fullPath: '/teaching'
+      preLoaderRoute: typeof AppTeachingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/schedule': {
+      id: '/_app/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof AppScheduleRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/monitoring': {
+      id: '/_app/monitoring'
+      path: '/monitoring'
+      fullPath: '/monitoring'
+      preLoaderRoute: typeof AppMonitoringRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/master-data': {
+      id: '/_app/master-data'
+      path: '/master-data'
+      fullPath: '/master-data'
+      preLoaderRoute: typeof AppMasterDataRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/krs': {
+      id: '/_app/krs'
+      path: '/krs'
+      fullPath: '/krs'
+      preLoaderRoute: typeof AppKrsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/integration': {
+      id: '/_app/integration'
+      path: '/integration'
+      fullPath: '/integration'
+      preLoaderRoute: typeof AppIntegrationRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/grades': {
+      id: '/_app/grades'
+      path: '/grades'
+      fullPath: '/grades'
+      preLoaderRoute: typeof AppGradesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/grade-input': {
+      id: '/_app/grade-input'
+      path: '/grade-input'
+      fullPath: '/grade-input'
+      preLoaderRoute: typeof AppGradeInputRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -95,15 +282,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/advisees': {
+      id: '/_app/advisees'
+      path: '/advisees'
+      fullPath: '/advisees'
+      preLoaderRoute: typeof AppAdviseesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/accreditation': {
+      id: '/_app/accreditation'
+      path: '/accreditation'
+      fullPath: '/accreditation'
+      preLoaderRoute: typeof AppAccreditationRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAccreditationRoute: typeof AppAccreditationRoute
+  AppAdviseesRoute: typeof AppAdviseesRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppGradeInputRoute: typeof AppGradeInputRoute
+  AppGradesRoute: typeof AppGradesRoute
+  AppIntegrationRoute: typeof AppIntegrationRoute
+  AppKrsRoute: typeof AppKrsRoute
+  AppMasterDataRoute: typeof AppMasterDataRoute
+  AppMonitoringRoute: typeof AppMonitoringRoute
+  AppScheduleRoute: typeof AppScheduleRoute
+  AppTeachingRoute: typeof AppTeachingRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAccreditationRoute: AppAccreditationRoute,
+  AppAdviseesRoute: AppAdviseesRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppGradeInputRoute: AppGradeInputRoute,
+  AppGradesRoute: AppGradesRoute,
+  AppIntegrationRoute: AppIntegrationRoute,
+  AppKrsRoute: AppKrsRoute,
+  AppMasterDataRoute: AppMasterDataRoute,
+  AppMonitoringRoute: AppMonitoringRoute,
+  AppScheduleRoute: AppScheduleRoute,
+  AppTeachingRoute: AppTeachingRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
