@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { accreditation } from "@/lib/mock-data";
 import { AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/accreditation")({
   head: () => ({ meta: [{ title: "Akreditasi — SIAT" }] }),
@@ -11,7 +13,29 @@ export const Route = createFileRoute("/_app/accreditation")({
 });
 
 function AccreditationPage() {
-  const critical = accreditation.filter((a) => a.daysToAudit < 120);
+  const [accreditations, setAccreditations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadAccreditations() {
+      try {
+        const data = await apiFetch<any[]>("/api/accreditations");
+        setAccreditations(data);
+      } catch (err: any) {
+        toast.error("Gagal memuat akreditasi: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadAccreditations();
+  }, []);
+
+  const critical = accreditations.filter((a) => a.daysToAudit < 120);
+
+  if (loading) {
+    return <div className="text-center py-12 text-muted-foreground">Memuat tracker akreditasi…</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -35,7 +59,7 @@ function AccreditationPage() {
             <Table>
               <TableHeader><TableRow><TableHead>Program Studi</TableHead><TableHead>Fakultas</TableHead><TableHead className="text-center">Peringkat</TableHead><TableHead>Berlaku s/d</TableHead><TableHead className="text-center">Hari ke Audit</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
               <TableBody>
-                {accreditation.map((a) => {
+                {accreditations.map((a) => {
                   const isCritical = a.daysToAudit < 120;
                   return (
                     <TableRow key={a.program} className={isCritical ? "bg-destructive/5" : ""}>

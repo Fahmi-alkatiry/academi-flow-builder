@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { transcript } from "@/lib/mock-data";
+import { apiFetch } from "@/lib/api";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/grades")({
   head: () => ({ meta: [{ title: "Nilai & Transkrip — SIAT" }] }),
@@ -12,16 +13,40 @@ export const Route = createFileRoute("/_app/grades")({
 });
 
 function GradesPage() {
+  const [transcript, setTranscript] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadTranscript() {
+      try {
+        const data = await apiFetch<any[]>("/api/student/grades");
+        setTranscript(data);
+      } catch (err: any) {
+        toast.error("Gagal memuat transkrip: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadTranscript();
+  }, []);
+
   const semesters = useMemo(() => {
-    const map = new Map<number, typeof transcript>();
+    const map = new Map<number, any[]>();
     transcript.forEach((t) => {
       if (!map.has(t.semester)) map.set(t.semester, []);
       map.get(t.semester)!.push(t);
     });
     return Array.from(map.entries()).sort((a, b) => a[0] - b[0]);
-  }, []);
+  }, [transcript]);
+
   const totalSks = transcript.reduce((s, t) => s + t.sks, 0);
-  const ipk = (transcript.reduce((s, t) => s + t.mutu * t.sks, 0) / totalSks).toFixed(2);
+  const ipk = totalSks > 0
+    ? (transcript.reduce((s, t) => s + t.mutu * t.sks, 0) / totalSks).toFixed(2)
+    : "0.00";
+
+  if (loading) {
+    return <div className="text-center py-12 text-muted-foreground">Memuat data transkrip…</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -35,39 +60,43 @@ function GradesPage() {
           <TabsTrigger value="transkrip">Transkrip Lengkap</TabsTrigger>
         </TabsList>
         <TabsContent value="per-semester" className="space-y-4">
-          {semesters.map(([sem, rows]) => {
-            const sks = rows.reduce((s, r) => s + r.sks, 0);
-            const ip = (rows.reduce((s, r) => s + r.mutu * r.sks, 0) / sks).toFixed(2);
-            return (
-              <Card key={sem}>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-base">Semester {sem}</CardTitle>
-                  <div className="flex gap-2">
-                    <Badge variant="secondary">{sks} SKS</Badge>
-                    <Badge>IP {ip}</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader><TableRow><TableHead>Kode</TableHead><TableHead>Mata Kuliah</TableHead><TableHead className="text-center">SKS</TableHead><TableHead className="text-center">Nilai</TableHead><TableHead className="text-center">Mutu</TableHead></TableRow></TableHeader>
-                      <TableBody>
-                        {rows.map((r) => (
-                          <TableRow key={r.code}>
-                            <TableCell className="font-mono text-xs">{r.code}</TableCell>
-                            <TableCell>{r.name}</TableCell>
-                            <TableCell className="text-center">{r.sks}</TableCell>
-                            <TableCell className="text-center"><Badge variant="outline">{r.grade}</Badge></TableCell>
-                            <TableCell className="text-center">{r.mutu.toFixed(1)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {semesters.length === 0 ? (
+            <Card><CardContent className="p-6 text-center text-muted-foreground">Belum ada data nilai semester.</CardContent></Card>
+          ) : (
+            semesters.map(([sem, rows]) => {
+              const sks = rows.reduce((s, r) => s + r.sks, 0);
+              const ip = (rows.reduce((s, r) => s + r.mutu * r.sks, 0) / sks).toFixed(2);
+              return (
+                <Card key={sem}>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-base">Semester {sem}</CardTitle>
+                    <div className="flex gap-2">
+                      <Badge variant="secondary">{sks} SKS</Badge>
+                      <Badge>IP {ip}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Kode</TableHead><TableHead>Mata Kuliah</TableHead><TableHead className="text-center">SKS</TableHead><TableHead className="text-center">Nilai</TableHead><TableHead className="text-center">Mutu</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {rows.map((r) => (
+                            <TableRow key={r.code}>
+                              <TableCell className="font-mono text-xs">{r.code}</TableCell>
+                              <TableCell>{r.name}</TableCell>
+                              <TableCell className="text-center font-semibold">{r.sks}</TableCell>
+                              <TableCell className="text-center"><Badge variant="outline">{r.grade}</Badge></TableCell>
+                              <TableCell className="text-center">{r.mutu.toFixed(1)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
         </TabsContent>
         <TabsContent value="transkrip">
           <Card>
@@ -76,16 +105,20 @@ function GradesPage() {
                 <Table>
                   <TableHeader><TableRow><TableHead>Sem</TableHead><TableHead>Kode</TableHead><TableHead>Mata Kuliah</TableHead><TableHead className="text-center">SKS</TableHead><TableHead className="text-center">Nilai</TableHead><TableHead className="text-center">Mutu</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {transcript.map((r, i) => (
-                      <TableRow key={i}>
-                        <TableCell>{r.semester}</TableCell>
-                        <TableCell className="font-mono text-xs">{r.code}</TableCell>
-                        <TableCell>{r.name}</TableCell>
-                        <TableCell className="text-center">{r.sks}</TableCell>
-                        <TableCell className="text-center"><Badge variant="outline">{r.grade}</Badge></TableCell>
-                        <TableCell className="text-center">{r.mutu.toFixed(1)}</TableCell>
-                      </TableRow>
-                    ))}
+                    {transcript.length === 0 ? (
+                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Belum ada riwayat transkrip.</TableCell></TableRow>
+                    ) : (
+                      transcript.map((r, i) => (
+                        <TableRow key={i}>
+                          <TableCell>{r.semester}</TableCell>
+                          <TableCell className="font-mono text-xs">{r.code}</TableCell>
+                          <TableCell>{r.name}</TableCell>
+                          <TableCell className="text-center font-semibold">{r.sks}</TableCell>
+                          <TableCell className="text-center"><Badge variant="outline">{r.grade}</Badge></TableCell>
+                          <TableCell className="text-center">{r.mutu.toFixed(1)}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>

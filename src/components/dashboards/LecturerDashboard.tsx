@@ -1,27 +1,56 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { advisees, lecturerClasses, mockUserByRole } from "@/lib/mock-data";
+import { mockUserByRole } from "@/lib/mock-data";
 import { Users, ClipboardCheck, GraduationCap, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth";
+import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 export default function LecturerDashboard() {
-  const u = mockUserByRole.lecturer;
-  const totalStudents = lecturerClasses.reduce((s, c) => s + c.students, 0);
+  const { user } = useAuth();
+  const u = user || mockUserByRole.lecturer;
+
+  const [classes, setClasses] = useState<any[]>([]);
+  const [advisees, setAdvisees] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        const classesData = await apiFetch<any[]>("/api/lecturer/classes");
+        const adviseesData = await apiFetch<any[]>("/api/lecturer/advisees");
+        setClasses(classesData);
+        setAdvisees(adviseesData);
+      } catch (err) {
+        console.error("Gagal memuat dashboard dosen:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDashboardData();
+  }, []);
+
+  const totalStudents = classes.reduce((s, c) => s + c.students, 0);
   const pending = advisees.filter((a) => a.krsStatus === "Menunggu").length;
 
   const stats = [
-    { label: "Kelas Diampu", value: lecturerClasses.length, icon: GraduationCap },
+    { label: "Kelas Diampu", value: classes.length, icon: GraduationCap },
     { label: "Total Mahasiswa", value: totalStudents, icon: Users },
     { label: "Mahasiswa Perwalian", value: advisees.length, icon: ClipboardCheck },
     { label: "KRS Menunggu", value: pending, icon: AlertCircle },
   ];
 
+  if (loading) {
+    return <div className="text-sm text-muted-foreground text-center py-6">Memuat dashboard…</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Selamat datang, {u.name.split(",")[0]}</h1>
-        <p className="text-muted-foreground text-sm">{u.nim} · {u.program}</p>
+        <p className="text-muted-foreground text-sm">{u.nidn || u.username} · {u.program}</p>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s) => (
@@ -41,15 +70,19 @@ export default function LecturerDashboard() {
             <Button asChild size="sm" variant="ghost"><Link to="/teaching">Lihat semua</Link></Button>
           </CardHeader>
           <CardContent className="space-y-2">
-            {lecturerClasses.map((c) => (
-              <div key={c.code} className="flex items-center justify-between rounded-md border p-3">
-                <div>
-                  <div className="font-medium text-sm">{c.code} · {c.name}</div>
-                  <div className="text-xs text-muted-foreground">{c.schedule} · {c.room}</div>
+            {classes.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-4">Tidak ada kelas aktif semester ini.</p>
+            ) : (
+              classes.map((c) => (
+                <div key={c.id} className="flex items-center justify-between rounded-md border p-3">
+                  <div>
+                    <div className="font-medium text-sm">{c.code} · {c.name}</div>
+                    <div className="text-xs text-muted-foreground">{c.schedule} · {c.room}</div>
+                  </div>
+                  <Badge variant="secondary">{c.students} mhs</Badge>
                 </div>
-                <Badge variant="secondary">{c.students} mhs</Badge>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -58,15 +91,19 @@ export default function LecturerDashboard() {
             <Button asChild size="sm" variant="ghost"><Link to="/advisees">Kelola</Link></Button>
           </CardHeader>
           <CardContent className="space-y-2">
-            {advisees.filter((a) => a.krsStatus === "Menunggu").map((a) => (
-              <div key={a.nim} className="flex items-center justify-between rounded-md border p-3">
-                <div>
-                  <div className="font-medium text-sm">{a.name}</div>
-                  <div className="text-xs text-muted-foreground">{a.nim} · IPK {a.ipk}</div>
+            {advisees.filter((a) => a.krsStatus === "Menunggu").length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-4">Semua KRS mahasiswa perwalian sudah disetujui/direvisi.</p>
+            ) : (
+              advisees.filter((a) => a.krsStatus === "Menunggu").map((a) => (
+                <div key={a.nim} className="flex items-center justify-between rounded-md border p-3">
+                  <div>
+                    <div className="font-medium text-sm">{a.name}</div>
+                    <div className="text-xs text-muted-foreground">{a.nim} · IPK {a.ipk.toFixed(2)}</div>
+                  </div>
+                  <Badge>{a.krsSks} SKS</Badge>
                 </div>
-                <Badge>{a.krsSks} SKS</Badge>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
       </div>

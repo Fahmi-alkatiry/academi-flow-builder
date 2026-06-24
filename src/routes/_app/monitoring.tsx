@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { gradeDistribution, enrollmentTrend, studentStatus } from "@/lib/mock-data";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, LineChart, Pie, PieChart, Cell } from "recharts";
+import { apiFetch } from "@/lib/api";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/monitoring")({
   head: () => ({ meta: [{ title: "Monitoring — SIAT" }] }),
@@ -27,6 +28,29 @@ const statusConfig = {
 
 function MonitoringPage() {
   const [fak, setFak] = useState("Semua");
+  const [chartsData, setChartsData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadCharts() {
+      try {
+        const data = await apiFetch<any>("/api/monitoring/charts");
+        setChartsData(data);
+      } catch (err: any) {
+        toast.error("Gagal memuat chart monitoring: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadCharts();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center py-12 text-muted-foreground">Memuat visualisasi data…</div>;
+  }
+
+  const { gradeDistribution = [], enrollmentTrend = [], studentStatus = [] } = chartsData || {};
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -84,7 +108,7 @@ function MonitoringPage() {
               <PieChart>
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Pie data={studentStatus} dataKey="value" nameKey="name" innerRadius={60} outerRadius={100}>
-                  {studentStatus.map((s) => <Cell key={s.name} fill={`var(--color-${s.name})`} />)}
+                  {studentStatus.map((s: any) => <Cell key={s.name} fill={`var(--color-${s.name})`} />)}
                 </Pie>
                 <ChartLegend content={<ChartLegendContent />} />
               </PieChart>

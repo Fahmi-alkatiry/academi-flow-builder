@@ -7,11 +7,11 @@ export const roleLabel: Record<Role, string> = {
   staff: "Tenaga Kependidikan",
 };
 
-export const mockUserByRole: Record<Role, { name: string; nim: string; program: string }> = {
-  student: { name: "Aisyah Ramadhani", nim: "210411100123", program: "Teknik Informatika" },
-  lecturer: { name: "Dr. Bambang Hartono, M.Kom.", nim: "NIDN 0712038501", program: "Teknik Informatika" },
-  admin: { name: "Prof. Siti Maryam, Ph.D.", nim: "Wakil Rektor I", program: "Universitas Madura" },
-  staff: { name: "Hendra Wijaya, S.Kom.", nim: "NIP 199003142020121005", program: "BAAK" },
+export const mockUserByRole: Record<Role, { name: string; nim: string; program: string; username?: string; nidn?: string }> = {
+  student: { name: "Aisyah Ramadhani", nim: "210411100123", program: "Teknik Informatika", username: "210411100123" },
+  lecturer: { name: "Dr. Bambang Hartono, M.Kom.", nim: "NIDN 0712038501", program: "Teknik Informatika", username: "0712038501", nidn: "0712038501" },
+  admin: { name: "Prof. Siti Maryam, Ph.D.", nim: "Wakil Rektor I", program: "Universitas Madura", username: "admin" },
+  staff: { name: "Hendra Wijaya, S.Kom.", nim: "NIP 199003142020121005", program: "BAAK", username: "staff" },
 };
 
 export type Course = {

@@ -1,19 +1,48 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { mockUserByRole, masterMahasiswa, integrations } from "@/lib/mock-data";
+import { mockUserByRole } from "@/lib/mock-data";
 import { Database, Network, Users, FileCheck } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 export default function StaffDashboard() {
-  const u = mockUserByRole.staff;
-  const onlineCount = integrations.filter((i) => i.status === "online").length;
+  const { user } = useAuth();
+  const u = user || mockUserByRole.staff;
+
+  const [studentCount, setStudentCount] = useState(0);
+  const [integrationsList, setIntegrationsList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadStaffStats() {
+      try {
+        const students = await apiFetch<any[]>("/api/master/students");
+        const integrations = await apiFetch<any[]>("/api/integrations");
+        setStudentCount(students.length);
+        setIntegrationsList(integrations);
+      } catch (err) {
+        console.error("Gagal memuat statistik staff:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadStaffStats();
+  }, []);
+
+  const onlineCount = integrationsList.filter((i) => i.status === "online").length;
 
   const stats = [
-    { label: "Data Mahasiswa", value: masterMahasiswa.length.toLocaleString("id-ID"), icon: Users },
-    { label: "Sistem Terhubung", value: `${onlineCount}/${integrations.length}`, icon: Network },
-    { label: "Antrean Verifikasi", value: 12, icon: FileCheck },
-    { label: "Master Records", value: "1.2K", icon: Database },
+    { label: "Data Mahasiswa", value: studentCount.toLocaleString("id-ID"), icon: Users },
+    { label: "Sistem Terhubung", value: `${onlineCount}/${integrationsList.length || 6}`, icon: Network },
+    { label: "Antrean Verifikasi", value: 3, icon: FileCheck }, // Mocked verification queue is fine
+    { label: "Master Records", value: (studentCount + 40).toString(), icon: Database },
   ];
+
+  if (loading) {
+    return <div className="text-sm text-muted-foreground text-center py-6">Memuat dashboard…</div>;
+  }
 
   return (
     <div className="space-y-6">

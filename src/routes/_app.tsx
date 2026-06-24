@@ -43,10 +43,11 @@ const navByRole: Record<Role, NavItem[]> = {
 };
 
 function AppLayout() {
-  const { role, ready, logout } = useAuth();
+  const { role, user, ready, logout } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const [desktopOpen, setDesktopOpen] = useState(true);
 
   useEffect(() => {
     if (ready && !role) navigate({ to: "/login" });
@@ -59,7 +60,17 @@ function AppLayout() {
   }
 
   const items = navByRole[role];
-  const user = mockUserByRole[role];
+  const displayUser = user ? {
+    name: user.name,
+    username: user.role === "student" ? user.nim : user.role === "lecturer" ? user.nidn : user.username,
+    program: user.program,
+    thumbnail: user.thumbnail
+  } : {
+    name: mockUserByRole[role].name,
+    username: mockUserByRole[role].nim,
+    program: mockUserByRole[role].program,
+    thumbnail: ""
+  };
 
   const SidebarBody = (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
@@ -93,14 +104,26 @@ function AppLayout() {
         })}
       </nav>
       <div className="border-t border-sidebar-border p-4">
-        <div className="text-xs text-sidebar-foreground/70 mb-1">Masuk sebagai</div>
-        <div className="text-sm font-medium truncate">{user.name}</div>
-        <div className="text-[11px] text-sidebar-foreground/70 truncate">{user.nim}</div>
+        <div className="flex items-center gap-3 mb-3">
+          <img 
+            src={displayUser.thumbnail || ""} 
+            className="size-10 rounded-full object-cover border border-sidebar-border bg-sidebar-accent shrink-0"
+            onError={(e) => {
+              e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayUser.name)}`;
+            }}
+            alt={displayUser.name}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="text-xs text-sidebar-foreground/70">Masuk sebagai</div>
+            <div className="text-sm font-medium truncate" title={displayUser.name}>{displayUser.name}</div>
+            <div className="text-[10px] text-sidebar-foreground/60 truncate">{displayUser.username}</div>
+          </div>
+        </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => { logout(); navigate({ to: "/login" }); }}
-          className="mt-3 w-full justify-start text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="mt-1 w-full justify-start text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         >
           <LogOut className="size-4 mr-2" /> Keluar
         </Button>
@@ -110,7 +133,11 @@ function AppLayout() {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      <aside className="hidden lg:flex w-64 shrink-0 border-r border-sidebar-border">{SidebarBody}</aside>
+      <aside className={`h-screen sticky top-0 transition-all duration-300 hidden lg:flex flex-col shrink-0 border-sidebar-border bg-sidebar ${desktopOpen ? "w-64 border-r" : "w-0 overflow-hidden border-r-0"}`}>
+        <div className="w-64 h-full flex flex-col shrink-0">
+          {SidebarBody}
+        </div>
+      </aside>
 
       {open && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
@@ -120,16 +147,26 @@ function AppLayout() {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 flex items-center gap-3 px-4 lg:px-6 border-b bg-card">
-          <button className="lg:hidden p-2 -ml-2" onClick={() => setOpen((v) => !v)} aria-label="Menu">
-            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+        <header className="h-14 sticky top-0 z-30 flex items-center gap-3 px-4 lg:px-6 border-b bg-card/85 backdrop-blur">
+          <button 
+            className="p-2 -ml-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition" 
+            onClick={() => {
+              if (window.innerWidth >= 1024) {
+                setDesktopOpen(!desktopOpen);
+              } else {
+                setOpen(!open);
+              }
+            }} 
+            aria-label="Menu"
+          >
+            <Menu className="size-5" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-muted-foreground truncate">{user.program}</p>
+            <p className="text-sm text-muted-foreground truncate">{displayUser.program}</p>
           </div>
           <Badge variant="secondary" className="hidden sm:inline-flex">{roleLabel[role]}</Badge>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="flex-1 p-4 lg:p-6">
           <Outlet />
         </main>
       </div>
