@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ function AdviseesPage() {
   const [loadingKrs, setLoadingKrs] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
 
@@ -38,13 +40,22 @@ function AdviseesPage() {
     setCurrentPage(1);
   };
 
+  const handleStatusFilterChange = (val: string) => {
+    setStatusFilter(val);
+    setCurrentPage(1);
+  };
+
   const filteredAdvisees = useMemo(() => {
-    return advisees.filter(a => 
-      a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.nim.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.krsStatus.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [advisees, searchQuery]);
+    return advisees.filter(a => {
+      const matchesSearch = 
+        a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.nim.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = statusFilter === "ALL" || a.krsStatus === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [advisees, searchQuery, statusFilter]);
 
   const paginatedAdvisees = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -130,15 +141,29 @@ function AdviseesPage() {
       <Card>
         <CardContent className="p-0">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center p-4 border-b">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Cari NIM, nama, atau status..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="pl-8 w-full"
-              />
+            <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-xl">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Cari NIM atau nama..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-8 w-full"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Semua Status</SelectItem>
+                  <SelectItem value="Menunggu">Menunggu</SelectItem>
+                  <SelectItem value="Disetujui">Disetujui</SelectItem>
+                  <SelectItem value="Revisi">Revisi</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-center justify-between sm:justify-end gap-4">
               <span className="text-sm text-muted-foreground">
